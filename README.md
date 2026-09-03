@@ -68,7 +68,7 @@ After running experiments, three plots are generated in `results/`:
 This project uses the **ACDC (Automated Cardiac Diagnosis Challenge)** dataset.
 
 - **Source:** [https://acdc.creatis.insa-lyon.fr/](https://humanheart-project.creatis.insa-lyon.fr/database/#collection/637218c173e9f0047faa00fb/folder/637218e573e9f0047faa00fc)
-- **Paper:** O. Bernard et al., *Deep Learning Techniques for Automatic MRI Cardiac Multi-Structures Segmentation and Diagnosis: Is the Problem Solved?*, IEEE Transactions on Medical Imaging, 2018.
+- **Paper:** O. Bernard, A. Lalande, C. Zotti, F. Cervenansky, et al., "Deep Learning Techniques for Automatic MRI Cardiac Multi-structures Segmentation and Diagnosis: Is the Problem Solved?" in *IEEE Transactions on Medical Imaging*, vol. 37, no. 11, pp. 2514–2525, Nov. 2018.
 - **License:** Free for research use; registration required. See `MANDATORY_CITATION.md` inside the dataset.
 
 > The raw data (~1.5 GB) is **not included** in this repository due to size constraints.
@@ -148,6 +148,6 @@ federated-cardiac/
 ## References
 
 - McMahan et al., *Communication-Efficient Learning of Deep Networks from Decentralized Data* (FedAvg), AISTATS 2017
-- Bernard et al., *Deep Learning Techniques for Automatic MRI Cardiac Multi-Structures Segmentation* (ACDC), IEEE TMI 2018
+- O. Bernard, A. Lalande, C. Zotti, F. Cervenansky, et al., "Deep Learning Techniques for Automatic MRI Cardiac Multi-structures Segmentation and Diagnosis: Is the Problem Solved?" in *IEEE Transactions on Medical Imaging*, vol. 37, no. 11, pp. 2514–2525, Nov. 2018.
 - Balle et al., *Federated Learning with Formal Differential Privacy Guarantees*, 2020
 - Flower: *A Friendly Federated Learning Framework*, https://flower.ai
