@@ -1,0 +1,13 @@
+# Raw dataset (too large for GitHub; download from ACDC challenge)
+data/acdc/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
