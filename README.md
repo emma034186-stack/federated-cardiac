@@ -67,7 +67,7 @@ After running experiments, three plots are generated in `results/`:
 
 This project uses the **ACDC (Automated Cardiac Diagnosis Challenge)** dataset.
 
-- **Source:** https://acdc.creatis.insa-lyon.fr/
+- **Source:** [https://acdc.creatis.insa-lyon.fr/](https://humanheart-project.creatis.insa-lyon.fr/database/#collection/637218c173e9f0047faa00fb/folder/637218e573e9f0047faa00fc)
 - **Paper:** O. Bernard et al., *Deep Learning Techniques for Automatic MRI Cardiac Multi-Structures Segmentation and Diagnosis: Is the Problem Solved?*, IEEE Transactions on Medical Imaging, 2018.
 - **License:** Free for research use; registration required. See `MANDATORY_CITATION.md` inside the dataset.
 
