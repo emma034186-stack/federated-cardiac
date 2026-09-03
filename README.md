@@ -63,6 +63,19 @@ After running experiments, three plots are generated in `results/`:
 
 ---
 
+## Dataset
+
+This project uses the **ACDC (Automated Cardiac Diagnosis Challenge)** dataset.
+
+- **Source:** https://acdc.creatis.insa-lyon.fr/
+- **Paper:** O. Bernard et al., *Deep Learning Techniques for Automatic MRI Cardiac Multi-Structures Segmentation and Diagnosis: Is the Problem Solved?*, IEEE Transactions on Medical Imaging, 2018.
+- **License:** Free for research use; registration required. See `MANDATORY_CITATION.md` inside the dataset.
+
+> The raw data (~1.5 GB) is **not included** in this repository due to size constraints.
+> Download the training set and extract to `data/acdc/training/`.
+
+---
+
 ## Setup
 
 ```bash
