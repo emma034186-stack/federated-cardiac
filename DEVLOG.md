@@ -83,11 +83,6 @@
 - **原因：** GitHub 上有直接編輯（透過網頁），本地 commit 落後 remote
 - **解法：** `git pull --rebase` 後再 `git push`
 
-### BUG-11｜rebase 時 README.md merge conflict
-- **問題：** `CONFLICT (content): Merge conflict in README.md`
-- **原因：** 本地與 remote 同時修改了 Dataset 區塊的同一行（citation 格式）
-- **解法：** 手動合併，保留 remote 的超連結 URL + 本地的完整引用格式，`git add` 後 `git rebase --continue`
-
 ---
 
 ## 實驗最終結果
