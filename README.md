@@ -18,21 +18,9 @@ The cardiac segmentation task (left ventricle, right ventricle, myocardium) uses
 
 ## Architecture
 
-```
-Hospital A (NOR, DCM)          Hospital B (HCM, DCM)          Hospital C (MINF, RV)
-  Local U-Net training           Local U-Net training           Local U-Net training
-        │                               │                               │
-        └───────────────────────────────┼───────────────────────────────┘
-                                        ▼
-                              Flower Server (FedAvg)
-                              Weighted parameter aggregation
-                                        │
-                              Global U-Net (round r+1)
-                                        │
-                              Broadcast to all hospitals
-```
+![Federated Learning Architecture](results/architecture.png)
 
-**Non-IID设定（模擬現實）**
+**Non-IID設定（模擬現實）**
 
 | Hospital | Dominant Pathology | Clinical Analogy |
 |---|---|---|
