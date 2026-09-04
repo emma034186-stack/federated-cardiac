@@ -30,6 +30,45 @@ The cardiac segmentation task (left ventricle, right ventricle, myocardium) uses
 
 ---
 
+## Federated Learning Round — Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant S  as Flower Server
+    participant A  as Hospital A<br/>(NOR, DCM)
+    participant B  as Hospital B<br/>(HCM, DCM)
+    participant C  as Hospital C<br/>(MINF, RV)
+
+    S->>A: 廣播初始模型權重
+    S->>B: 廣播初始模型權重
+    S->>C: 廣播初始模型權重
+
+    loop 20 Rounds
+        note over S: Round r 開始
+
+        par 各院同步本地訓練
+            S->>A: 送出全局模型 (round r)
+            note over A: 本地訓練 5 epochs<br/>CrossEntropyLoss
+            A-->>S: 回傳更新後模型 + 樣本數
+        and
+            S->>B: 送出全局模型 (round r)
+            note over B: 本地訓練 5 epochs<br/>CrossEntropyLoss
+            B-->>S: 回傳更新後模型 + 樣本數
+        and
+            S->>C: 送出全局模型 (round r)
+            note over C: 本地訓練 5 epochs<br/>CrossEntropyLoss
+            C-->>S: 回傳更新後模型 + 樣本數
+        end
+
+        note over S: FedAvg 加權平均<br/>（依各院樣本數）
+        note over S: 在 Test Set 評估<br/>記錄 Global Dice
+    end
+
+    note over S: 輸出 history JSON<br/>Best Dice & Round
+```
+
+---
+
 ## Experiments
 
 | Experiment | Description |
