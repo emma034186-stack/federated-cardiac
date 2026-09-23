@@ -10,7 +10,7 @@ Training deep learning models for medical image analysis requires large, diverse
 
 1. Simulating three hospitals with heterogeneous patient populations (Non-IID)
 2. Training a shared U-Net model using Federated Averaging (FedAvg)
-3. Evaluating the privacy-accuracy trade-off with Differential Privacy (DP)
+3. Probing the privacy-accuracy trade-off with server-side Gaussian noise (a first step toward Differential Privacy — not yet a formal DP guarantee, see below)
 
 The cardiac segmentation task (left ventricle, right ventricle, myocardium) uses the public **ACDC** dataset and directly extends prior work on single-site cardiac AR surgical planning.
 
@@ -25,7 +25,7 @@ The cardiac segmentation task (left ventricle, right ventricle, myocardium) uses
 | Hospital | Dominant Pathology | Clinical Analogy |
 |---|---|---|
 | A | NOR, DCM | General cardiology center |
-| B | HCM, DCM | Specialized HCM clinic |
+| B | HCM | Specialized HCM clinic |
 | C | MINF, RV | Post-MI / RV disease center |
 
 ---
@@ -36,7 +36,7 @@ The cardiac segmentation task (left ventricle, right ventricle, myocardium) uses
 sequenceDiagram
     participant S  as Flower Server
     participant A  as Hospital A<br/>(NOR, DCM)
-    participant B  as Hospital B<br/>(HCM, DCM)
+    participant B  as Hospital B<br/>(HCM)
     participant C  as Hospital C<br/>(MINF, RV)
 
     S->>A: 廣播初始模型權重
@@ -76,7 +76,7 @@ sequenceDiagram
 | `single_site` | U-Net trained on Hospital A only (baseline) |
 | `fedavg_iid` | FedAvg with equal random data split |
 | `fedavg_noniid` | FedAvg with pathology-based Non-IID split |
-| `fedavg_noniid_dp` | FedAvg + Differential Privacy (ε ≈ 10) |
+| `fedavg_noniid_dp` | FedAvg + server-side Gaussian noise (σ = 0.005 per parameter, no clipping — **not** formal DP, no ε) |
 
 ---
 
@@ -130,7 +130,11 @@ python run_experiments.py
 python train_single_site.py                      # Baseline
 python simulate.py --mode iid                    # FedAvg IID
 python simulate.py --mode noniid                 # FedAvg Non-IID
-python simulate.py --mode noniid_dp              # FedAvg Non-IID + DP
+python simulate.py --mode noniid_dp              # FedAvg Non-IID + server-side noise
+
+# Windows: if Ray's shared-memory object store fails (raylet CreateFileMapping error),
+# run the same clients/strategy sequentially in one process instead:
+python simulate.py --mode noniid --backend inprocess
 
 # Generate plots from saved results
 python utils/visualization.py
@@ -153,7 +157,7 @@ federated-cardiac/
 │   └── unet.py                # Lightweight 2-D U-Net
 ├── fl/
 │   ├── client.py              # Flower NumPy client
-│   └── server.py              # FedAvg strategy + DP wrapper
+│   └── server.py              # FedAvg strategy + server-side noise wrapper
 ├── utils/
 │   ├── metrics.py             # Dice Score (per-class & mean)
 │   ├── trainer.py             # Local training loop
@@ -168,7 +172,7 @@ federated-cardiac/
 - **2-D slice-based training**: Each MRI volume is decomposed into axial slices, enabling larger effective batch sizes and faster iteration.
 - **Non-IID by pathology**: Rather than a random split, hospitals are assigned patients by diagnosis group, reflecting real-world clinical specialization.
 - **FedAvg weighted aggregation**: Client contributions are weighted by local dataset size, reducing bias from unequal hospital sizes.
-- **Server-side DP clipping**: Gaussian noise and gradient clipping are applied at the server after aggregation, following the DP-FedAvg formulation.
+- **Server-side noise (not formal DP)**: Gaussian noise (σ = 0.005) is added to every parameter of the aggregated model. There is no update clipping and no privacy accounting, so this does **not** provide a differential-privacy guarantee and has no ε. A proper DP-FedAvg implementation (per-client update clipping + calibrated noise + RDP accounting) is future work.
 
 ---
 

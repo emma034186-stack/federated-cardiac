@@ -4,10 +4,14 @@ Load all experiment result JSONs from results/ and produce publication-quality p
   2. Final Dice Score bar chart with per-class breakdown
 """
 import os
+import sys
 import json
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
+
+# Run as `python utils/visualization.py` from the repo root: put the root on the path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import RESULTS_DIR, NUM_ROUNDS
 
 plt.rcParams.update({
@@ -29,7 +33,7 @@ LABELS = {
     "single_site":      "Single-Site (Hospital A)",
     "fedavg_iid":       "FedAvg IID",
     "fedavg_noniid":    "FedAvg Non-IID",
-    "fedavg_noniid_dp": "FedAvg Non-IID + DP (ε≈10)",
+    "fedavg_noniid_dp": "FedAvg Non-IID + noise (σ=0.005, not formal DP)",
 }
 
 
@@ -126,7 +130,7 @@ def plot_dp_tradeoff(data):
     drop = (no_dp - with_dp) * 100
 
     fig, ax = plt.subplots(figsize=(6, 4))
-    ax.bar(["No Privacy", "DP (ε≈10)"], [no_dp, with_dp],
+    ax.bar(["No noise", "Noise σ=0.005\n(not formal DP)"], [no_dp, with_dp],
            color=["#2ECC71", "#F39C12"], width=0.4, edgecolor="white")
     ax.set_ylabel("Dice Score")
     ax.set_title(f"Privacy-Accuracy Trade-off\n(Dice drop: {drop:.2f}%)")

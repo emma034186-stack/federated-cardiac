@@ -27,13 +27,14 @@ DP_NOISE_MULTIPLIER = 0.1
 DP_CLIPPING_NORM = 5.0
 DP_NOISE_SCALE = 0.005   # per-element Gaussian noise added after FedAvg aggregation
 
-# ACDC pathology groups per hospital (Non-IID split)
-# Hospital A: mostly normal & dilated — simulates a general cardiology center
-# Hospital B: mostly hypertrophic — simulates a specialized HCM clinic
-# Hospital C: mostly infarction & RV — simulates a post-MI/RV center
+# ACDC pathology groups per hospital (Non-IID split). Groups are disjoint:
+# each patient goes to exactly one hospital.
+# Hospital A: normal & dilated — simulates a general cardiology center
+# Hospital B: hypertrophic only — simulates a specialized HCM clinic
+# Hospital C: infarction & RV — simulates a post-MI/RV center
 HOSPITAL_GROUPS = {
     0: ["NOR", "DCM"],
-    1: ["HCM", "DCM"],
+    1: ["HCM"],
     2: ["MINF", "RV"],
 }
 

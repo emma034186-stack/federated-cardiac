@@ -4,27 +4,38 @@ import nibabel as nib
 import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset
-from monai.transforms import Compose, RandFlip, RandRotate, RandZoom
+from monai.transforms import Compose, RandFlipd, RandRotated, RandZoomd
 from config import IMG_SIZE, NUM_CLASSES
+
+
+def read_patient_info(patient_dir: str) -> dict:
+    """Parse ACDC Info.cfg (``key: value`` lines, no INI section header)."""
+    info = {}
+    with open(os.path.join(patient_dir, "Info.cfg")) as f:
+        for line in f:
+            if ":" in line:
+                key, value = line.split(":", 1)
+                info[key.strip()] = value.strip()
+    return info
 
 
 def read_patient_group(patient_dir: str) -> str:
     """Read pathology group from ACDC Info.cfg (e.g. 'DCM', 'NOR', ...)."""
-    cfg_path = os.path.join(patient_dir, "Info.cfg")
-    with open(cfg_path) as f:
-        for line in f:
-            if line.startswith("Group:"):
-                return line.split(":", 1)[1].strip()
-    return "UNKNOWN"
+    return read_patient_info(patient_dir).get("Group", "UNKNOWN")
 
 
 def load_patient_frames(patient_dir: str):
     """
     Load ED and ES frames + ground truth masks for one patient.
+    The ED/ES frame indices differ per patient, so they are read from Info.cfg
+    (only 20 of the 100 training patients have ES at frame 12).
     Returns list of (image_2d_slice, label_2d_slice) tuples.
     """
+    info = read_patient_info(patient_dir)
+    frames = [int(info["ED"]), int(info["ES"])]
     slices = []
-    for suffix in ["_frame01", "_frame12"]:
+    for frame in frames:
+        suffix = f"_frame{frame:02d}"
         patient_id = os.path.basename(patient_dir)
         img_path = os.path.join(patient_dir, f"{patient_id}{suffix}.nii.gz")
         gt_path  = os.path.join(patient_dir, f"{patient_id}{suffix}_gt.nii.gz")
@@ -40,7 +51,7 @@ def load_patient_frames(patient_dir: str):
         # Iterate over slices along z-axis
         for z in range(img_vol.shape[2]):
             img_slice = img_vol[:, :, z].astype(np.float32)
-            gt_slice  = gt_vol[:, :, z].astype(np.int64)
+            gt_slice  = gt_vol[:, :, z].astype(np.uint8)   # labels 0-3; uint8 keeps the in-memory dataset small (Ray copies it to every client)
             # Skip near-empty slices (less than 1% foreground)
             if (gt_slice > 0).mean() < 0.01:
                 continue
@@ -81,10 +92,16 @@ class ACDCSliceDataset(Dataset):
     def __init__(self, slice_pairs, augment=False):
         self.slices = slice_pairs
         self.augment = augment
+        # Dictionary transforms draw one set of random parameters per call and
+        # apply it to both keys, so image and mask stay aligned; the mask uses
+        # nearest-neighbour interpolation so class labels are never blended.
+        keys = ["img", "gt"]
         self.aug_transform = Compose([
-            RandFlip(spatial_axis=1, prob=0.5),
-            RandRotate(range_x=0.3, prob=0.5, keep_size=True),
-            RandZoom(min_zoom=0.9, max_zoom=1.1, prob=0.3, keep_size=True),
+            RandFlipd(keys=keys, spatial_axis=1, prob=0.5),
+            RandRotated(keys=keys, range_x=0.3, prob=0.5, keep_size=True,
+                        mode=("bilinear", "nearest")),
+            RandZoomd(keys=keys, min_zoom=0.9, max_zoom=1.1, prob=0.3, keep_size=True,
+                      mode=("bilinear", "nearest")),
         ])
 
     def __len__(self):
@@ -106,12 +123,12 @@ class ACDCSliceDataset(Dataset):
 
         if self.augment:
             # MONAI transforms expect numpy (C, H, W); output is MetaTensor → convert back
-            img_np = img.numpy()
-            gt_np  = gt.unsqueeze(0).numpy().astype(np.float32)
-            img_np = np.array(self.aug_transform(img_np))
-            gt_np  = np.array(self.aug_transform(gt_np))
-            img = torch.from_numpy(img_np)
-            gt  = torch.from_numpy(gt_np).squeeze(0).long()
+            out = self.aug_transform({
+                "img": img.numpy(),
+                "gt": gt.unsqueeze(0).numpy().astype(np.float32),
+            })
+            img = torch.from_numpy(np.array(out["img"]))
+            gt  = torch.from_numpy(np.array(out["gt"])).squeeze(0).round().long()
 
         # Normalize intensity to [0, 1]
         img_min, img_max = img.min(), img.max()
